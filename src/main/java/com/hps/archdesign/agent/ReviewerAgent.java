@@ -22,8 +22,6 @@ public class ReviewerAgent {
         String fullPrompt = String.format("""
                 %s
 
-                %s
-
                 ## Iteration Goal
                 %s
 
@@ -31,7 +29,7 @@ public class ReviewerAgent {
                 %s
 
                 Please review the above design against the iteration goal, quality attributes, constraints, and architectural concerns.
-                """, systemPrompt, context, iterationGoal, design);
+                """, context, iterationGoal, design);
 
         String response = chatClient.prompt()
                 .system(systemPrompt)

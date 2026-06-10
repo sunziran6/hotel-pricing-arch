@@ -18,7 +18,7 @@ public class DesignerAgent {
     public AgentResponse design(String task, List<ConversationEntry> history, String priorKnowledge, String caseStudy) {
         String systemPrompt = buildSystemPrompt(priorKnowledge, caseStudy);
         String context = buildContextFromHistory(history);
-        String fullPrompt = systemPrompt + "\n\n" + context + "\n\n## Design Task\n" + task;
+        String fullPrompt = context + "\n\n## Design Task\n" + task;
 
         String response = chatClient.prompt()
                 .system(systemPrompt)

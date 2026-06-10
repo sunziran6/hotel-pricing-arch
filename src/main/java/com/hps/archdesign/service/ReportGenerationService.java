@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,7 +29,8 @@ public class ReportGenerationService {
         ensureOutputDir();
         String filename = reportDir + "/ADD-Report-Hotel-Pricing-System.md";
 
-        try (PrintWriter w = new PrintWriter(new FileWriter(filename))) {
+        try (PrintWriter w = new PrintWriter(new OutputStreamWriter(
+                new FileOutputStream(filename), StandardCharsets.UTF_8))) {
             writeHeader(w);
             writeAddStep1(w);
             writeIteration1(w, results);

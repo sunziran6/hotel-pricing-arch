@@ -4,27 +4,21 @@ import com.hps.archdesign.model.ConversationEntry;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class OrchestratorAgent {
 
     private final ChatClient chatClient;
-    private final String priorKnowledge;
-    private final String caseStudy;
 
-    public OrchestratorAgent(ChatClient chatClient,
-                             PriorKnowledgeLoader priorKnowledgeLoader) {
+    public OrchestratorAgent(ChatClient chatClient) {
         this.chatClient = chatClient;
-        this.priorKnowledge = priorKnowledgeLoader.getAddMethod();
-        this.caseStudy = priorKnowledgeLoader.getCaseStudy();
     }
 
     public AgentResponse orchestrate(String task, List<ConversationEntry> history) {
         String systemPrompt = buildSystemPrompt();
         String context = buildContextFromHistory(history);
-        String fullPrompt = systemPrompt + "\n\n" + context + "\n\n## Current Task\n" + task;
+        String fullPrompt = context + "\n\n## Current Task\n" + task;
 
         String response = chatClient.prompt()
                 .system(systemPrompt)

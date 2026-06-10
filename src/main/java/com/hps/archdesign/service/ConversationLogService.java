@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,7 +43,8 @@ public class ConversationLogService {
         String filename = String.format("%s/iteration-%02d-conversation-log.md",
                 outputDir, result.getIterationNumber());
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(
+                new FileOutputStream(filename), StandardCharsets.UTF_8))) {
             writer.println("# Iteration " + result.getIterationNumber()
                     + " - Conversation Log");
             writer.println();
@@ -74,7 +77,8 @@ public class ConversationLogService {
         ensureOutputDir();
         String filename = outputDir + "/full-conversation-log.md";
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(
+                new FileOutputStream(filename), StandardCharsets.UTF_8))) {
             writer.println("# Hotel Pricing System - ADD 3.0 Multi-Agent Architecture Design");
             writer.println("## Complete Conversation Log");
             writer.println();
