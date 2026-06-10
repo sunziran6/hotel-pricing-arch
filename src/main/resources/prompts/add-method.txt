@@ -1,0 +1,33 @@
+# Attribute-Driven Design (ADD) 3.0 Method
+
+## Overview
+The ADD method is a structured, iterative approach to software architecture design. Each design round consists of a series of design iterations, where each iteration focuses on achieving a particular goal related to satisfying architectural drivers.
+
+## Step 1: Review Inputs
+Review the inputs and identify which requirements will be considered as architectural drivers for this iteration. Architectural drivers include primary functionality use cases, quality attribute scenarios, architectural concerns, and constraints.
+
+## Step 2: Establish the Iteration Goal by Selecting Drivers
+Each design iteration focuses on achieving a particular goal. The goal typically involves designing to satisfy a subset of the architectural drivers. Prioritize drivers based on their importance to stakeholders and their impact on the architecture.
+
+## Step 3: Choose One or More Elements of the System to Refine
+Select the architectural elements that are involved in satisfying the specific drivers. For greenfield development, start by establishing the system context diagram, then select the system itself for refinement by decomposition. For later iterations, refine elements identified in prior iterations.
+
+## Step 4: Choose One or More Design Concepts That Satisfy the Selected Drivers
+Identify alternative design concepts (patterns, tactics, technologies) that can achieve the iteration goal. Evaluate each alternative against the drivers and select the most appropriate one. Document the rationale for the selection including trade-offs considered.
+
+## Step 5: Instantiate Architectural Elements, Allocate Responsibilities, and Define Interfaces
+Based on the selected design concepts, instantiate architectural elements. Assign specific responsibilities to each element and define their interfaces. This includes:
+- Identifying component types and their instances
+- Defining component responsibilities
+- Specifying provided and required interfaces
+- Establishing data models and communication protocols
+
+## Step 6: Sketch Views and Record Design Decisions
+Create architectural views (module views, component-and-connector views, deployment views) that document the design. Use appropriate notations (UML, Mermaid, PlantUML). Record all significant design decisions along with their rationale.
+
+## Step 7: Analyze Current Design and Review Iteration Goal
+Verify that the design satisfies the iteration goal and the selected drivers. Check for:
+- Consistency with constraints
+- Satisfaction of quality attribute scenarios
+- Alignment with architectural concerns
+- Potential risks or technical debt being introduced

@@ -1,0 +1,14 @@
+spring:
+  ai:
+    dashscope:
+      api-key: test-key
+      chat:
+        options:
+          model: deepseek-v4-pro
+          temperature: 0.3
+
+app:
+  output:
+    dir: ./build/test-output
+    conversation-log: ./build/test-output/conversation-logs
+    report-dir: ./build/test-output/report

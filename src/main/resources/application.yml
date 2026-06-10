@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: hotel-pricing-arch-design
+
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:YOUR_DASHSCOPE_API_KEY_HERE}
+      chat:
+        options:
+          model: deepseek-v4-pro
+          temperature: 0.3
+          max-tokens: 8192
+
+# Conversation log output directory
+app:
+  output:
+    dir: ./output
+    conversation-log: ./output/conversation-logs
+    report-dir: ./output/report
+
+logging:
+  level:
+    com.hps.archdesign: DEBUG
+    com.alibaba.cloud.ai: INFO
