@@ -318,11 +318,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=120)
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=100)
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
 ```
 ---
 
@@ -688,11 +688,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=120)
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=100)
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
 ```
 
 ---

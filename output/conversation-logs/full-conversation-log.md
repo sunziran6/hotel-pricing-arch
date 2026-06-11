@@ -296,11 +296,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=120)
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=100)
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
 ```
 ---
 
@@ -646,11 +646,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=120)
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=100)
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
 ```
 
 ---
@@ -911,11 +911,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=120)
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=100)
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
 ```
 
 ---
@@ -2106,7 +2106,7 @@ erDiagram
         string rateId PK
         string hotelId FK
         string name
-        enum rateType "BASE, FIXED, SEASONAL..."
+        string rateType "rateType: BASE, FIXED, SEASONAL..."
         string calculationRules
         boolean active
     }
@@ -2132,7 +2132,7 @@ erDiagram
         string permissionId PK
         string userId FK
         string hotelId FK
-        enum role "HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
+        string role "role: HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
     }
 
     Hotel ||--|{ RoomType : "has"
@@ -2275,7 +2275,7 @@ Decision D8 references *“QA‑1 (Correctness)”* – QA‑1 is **Performance*
 
 2. **Fix the data model diagram**  
    Replace `enum rateType` with `string rateType` and add a comment describing the values. For example:  
-   ```mermaid
+```mermaid
    Rate {
        string rateId PK
        string hotelId FK
@@ -2573,7 +2573,7 @@ erDiagram
         string rateId PK
         string hotelId FK
         string name
-        enum rateType "BASE, FIXED, SEASONAL..."
+        string rateType "rateType: BASE, FIXED, SEASONAL..."
         string calculationRules
         boolean active
     }
@@ -2599,7 +2599,7 @@ erDiagram
         string permissionId PK
         string userId FK
         string hotelId FK
-        enum role "HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
+        string role "role: HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
     }
 
     Hotel ||--|{ RoomType : "has"

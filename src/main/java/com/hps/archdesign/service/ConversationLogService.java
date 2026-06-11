@@ -61,7 +61,7 @@ public class ConversationLogService {
                 writer.println();
                 writer.println("**Timestamp**: " + entry.getTimestamp());
                 writer.println();
-                writer.println(entry.getMessage());
+                writer.println(sanitizeMermaid(entry.getMessage()));
                 writer.println();
                 writer.println("---");
                 writer.println();
@@ -99,7 +99,7 @@ public class ConversationLogService {
                     writer.println("### [" + entry.getTimestamp() + "] "
                             + entry.getAgentName() + " (" + entry.getRole() + ")");
                     writer.println();
-                    writer.println(entry.getMessage());
+                    writer.println(sanitizeMermaid(entry.getMessage()));
                     writer.println();
                 }
 
@@ -121,6 +121,23 @@ public class ConversationLogService {
         } catch (IOException e) {
             log.error("Failed to save full conversation log: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Fix common Mermaid syntax issues for Mermaid 10.9.x compatibility.
+     */
+    private String sanitizeMermaid(String content) {
+        if (content == null) return null;
+        content = content.replaceAll(
+                "\\$offset([XY])=\"(-?\\d+)\"",
+                "\\$offset$1=$2");
+        content = content.replaceAll(
+                "(?m)^[ \\t]+```mermaid",
+                "```mermaid");
+        content = content.replaceAll(
+                "(?m)^(\\s+)(enum)\\s+(\\w+)(.*)",
+                "$1string $3 \"$3\"$4");
+        return content;
     }
 
     private void ensureOutputDir() {

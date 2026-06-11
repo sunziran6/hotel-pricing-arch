@@ -20,6 +20,15 @@ public class IterationResult {
     private String finalDesignDecision;
     private String mermaidDiagram;
     private boolean reviewPassed;
+    private long accumulatedPromptTokens;
+    private long accumulatedCompletionTokens;
+    private long accumulatedTotalTokens;
+
+    public void addTokenUsage(Long prompt, Long completion, Long total) {
+        if (prompt != null) this.accumulatedPromptTokens += prompt;
+        if (completion != null) this.accumulatedCompletionTokens += completion;
+        if (total != null) this.accumulatedTotalTokens += total;
+    }
 
     public static IterationResult create(int number, String goal) {
         return IterationResult.builder()

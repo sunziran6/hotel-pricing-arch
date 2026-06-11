@@ -146,11 +146,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=-60)
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=-120)
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=-100)
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
 ```
 ---
 
@@ -290,11 +290,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=-60)
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=-120)
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=-100)
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
 ```
 
 ---
@@ -556,11 +556,11 @@ C4Context
   Rel(HotelPricingSystem, CMS, "Publish price updates", "Kafka")
   Rel(ExternalQuerySystems, HotelPricingSystem, "Query prices", "REST API (HTTPS)")
   Rel(HotelPricingSystem, IdentityService, "Authenticate users", "OAuth2/OIDC")
-  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY=-60)
-  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY=60)
-  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX=-120)
-  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX=-100)
-  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX=120)
+  UpdateRelStyle(CommercialUser, HotelPricingSystem, $offsetY="-60")
+  UpdateRelStyle(Administrator, HotelPricingSystem, $offsetY="60")
+  UpdateRelStyle(HotelPricingSystem, CMS, $offsetX="-120")
+  UpdateRelStyle(ExternalQuerySystems, HotelPricingSystem, $offsetX="-100")
+  UpdateRelStyle(HotelPricingSystem, IdentityService, $offsetX="120")
 ```
 
 ---
@@ -1442,7 +1442,7 @@ erDiagram
         string rateId PK
         string hotelId FK
         string name
-        string rateType "rateType: BASE, FIXED, SEASONAL..."
+        enum rateType "BASE, FIXED, SEASONAL..."
         string calculationRules
         boolean active
     }
@@ -1468,7 +1468,7 @@ erDiagram
         string permissionId PK
         string userId FK
         string hotelId FK
-        string role "role: HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
+        enum role "HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
     }
 
     Hotel ||--|{ RoomType : "has"
@@ -1563,7 +1563,7 @@ Decision D8 references *“QA‑1 (Correctness)”* – QA‑1 is **Performance*
 
 2. **Fix the data model diagram**  
    Replace `enum rateType` with `string rateType` and add a comment describing the values. For example:  
-```mermaid
+   ```mermaid
    Rate {
        string rateId PK
        string hotelId FK
@@ -1642,7 +1642,7 @@ Decision D8 references *“QA‑1 (Correctness)”* – QA‑1 is **Performance*
 
 2. **Fix the data model diagram**  
    Replace `enum rateType` with `string rateType` and add a comment describing the values. For example:  
-```mermaid
+   ```mermaid
    Rate {
        string rateId PK
        string hotelId FK
@@ -1941,7 +1941,7 @@ erDiagram
         string rateId PK
         string hotelId FK
         string name
-        string rateType "rateType: BASE, FIXED, SEASONAL..."
+        enum rateType "BASE, FIXED, SEASONAL..."
         string calculationRules
         boolean active
     }
@@ -1967,7 +1967,7 @@ erDiagram
         string permissionId PK
         string userId FK
         string hotelId FK
-        string role "role: HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
+        enum role "HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
     }
 
     Hotel ||--|{ RoomType : "has"
@@ -2990,32 +2990,8 @@ The design is cohesive: all elements reinforce the ability to deliver reliably, 
 | The LLM used | deepseek/deepseek-v4-pro |
 | Number of Human Interaction turns | 1 (initial application execution) |
 | Total Conversation Entries | 29 |
-| Total Estimated Token Consumption | ~87,000 tokens (see breakdown below) |
-| Total Time Cost | ~34 minutes |
-
-## Per-Iteration Token Consumption (Estimated)
-
-Token counts are estimated based on: system prompt sizes (~375–1,600 tokens per call depending on agent), task description sizes, growing conversation history, and agent response lengths. Estimation ratio: ~4 characters per token for English technical text.
-
-| Iteration | Calls | System Prompt Tokens | Task + History Tokens | Output Tokens | Estimated Total |
-|-----------|-------|---------------------|----------------------|---------------|-----------------|
-| 1 (Overall Structure) | 14 | ~13,400 | ~8,100 | ~12,200 | **~33,700** |
-| 2 (Primary Functionality) | 9 | ~10,500 | ~8,200 | ~12,300 | **~31,000** |
-| 3 (Reliability & Availability) | 3 | ~3,500 | ~2,200 | ~3,200 | **~8,900** |
-| 4 (Development & Operations) | 3 | ~3,500 | ~2,500 | ~3,700 | **~9,700** |
-| **Total** | **29** | **~30,900** | **~21,000** | **~31,400** | **~83,300** |
-
-> **Note**: Token counts are estimates derived from conversation log character counts (Iter 1: 81KB, Iter 2: 82KB, Iter 3: 22KB, Iter 4: 25KB) and system prompt sizes (Orchestrator: ~1,700 chars, Designer: ~6,700 chars with prior knowledge, Reviewer: ~6,900 chars with prior knowledge). Actual token consumption depends on the LLM's tokenizer and may vary by ±15%.
-
-## Per-Iteration Time Cost
-
-| Iteration | Start Time | End Time | Duration |
-|-----------|-----------|----------|----------|
-| 1 (Overall Structure) | 10:03:54 | 10:16:09 | ~12 min 15 sec |
-| 2 (Primary Functionality) | 10:16:09 | 10:30:51 | ~14 min 42 sec |
-| 3 (Reliability & Availability) | 10:30:51 | 10:34:45 | ~3 min 54 sec |
-| 4 (Development & Operations) | 10:34:45 | 10:37:48 | ~3 min 03 sec |
-| **Total** | **10:03:54** | **10:37:48** | **~33 min 54 sec** |
+| Token Consumption | See conversation logs for per-iteration token counts |
+| Time Cost | See timestamps in conversation logs for duration |
 
 ## Multi-Agent Interaction Structure
 

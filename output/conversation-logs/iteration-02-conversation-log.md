@@ -1076,7 +1076,7 @@ erDiagram
         string rateId PK
         string hotelId FK
         string name
-        enum rateType "BASE, FIXED, SEASONAL..."
+        string rateType "rateType: BASE, FIXED, SEASONAL..."
         string calculationRules
         boolean active
     }
@@ -1102,7 +1102,7 @@ erDiagram
         string permissionId PK
         string userId FK
         string hotelId FK
-        enum role "HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
+        string role "role: HOTEL_ADMIN, PRICE_CHANGER, READ_ONLY"
     }
 
     Hotel ||--|{ RoomType : "has"
@@ -1253,7 +1253,7 @@ Decision D8 references *“QA‑1 (Correctness)”* – QA‑1 is **Performance*
 
 2. **Fix the data model diagram**  
    Replace `enum rateType` with `string rateType` and add a comment describing the values. For example:  
-   ```mermaid
+```mermaid
    Rate {
        string rateId PK
        string hotelId FK

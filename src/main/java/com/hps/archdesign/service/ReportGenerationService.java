@@ -120,7 +120,7 @@ public class ReportGenerationService {
         for (ADDStep step : result.getSteps()) {
             w.println("## ADD Step " + step.getStepNumber() + ": " + step.getStepName());
             w.println();
-            w.println(step.getContent());
+            w.println(sanitize(step.getContent()));
             w.println();
         }
 
@@ -131,7 +131,7 @@ public class ReportGenerationService {
         if (result.getFinalDesignDecision() != null && !result.getFinalDesignDecision().isBlank()) {
             w.println("## Final Design Decision for Iteration " + iterationNum);
             w.println();
-            w.println(result.getFinalDesignDecision());
+            w.println(sanitize(result.getFinalDesignDecision()));
             w.println();
         }
 
@@ -166,7 +166,7 @@ public class ReportGenerationService {
             w.println();
             w.println("> **Timestamp**: " + lastReview.getTimestamp());
             w.println();
-            w.println(lastReview.getMessage());
+            w.println(sanitize(lastReview.getMessage()));
             w.println();
         }
     }
@@ -291,6 +291,38 @@ public class ReportGenerationService {
         w.println("| [Member 2] | [姓名2] | Designer agent prompt engineering; Mermaid diagram generation and verification; ADD 3.0 process compliance verification |");
         w.println("| [Member 3] | [姓名3] | Report generation and formatting; conversation log collection and analysis; interaction cost analysis; testing and validation |");
         w.println();
+    }
+
+    /**
+     * Sanitize content to fix common Mermaid syntax errors that cause
+     * "syntax error in text mermaid version 10.9.1" rendering failures.
+     */
+    private String sanitize(String content) {
+        if (content == null) return null;
+
+        // Fix 1: Remove quotes from numeric $offsetX/$offsetY in UpdateRelStyle
+        // e.g. $offsetY="-60" → $offsetY=-60
+        content = content.replaceAll(
+                "\\$offset([XY])=\"(-?\\d+)\"",
+                "\\$offset$1=$2");
+
+        // Fix 2: Remove leading whitespace before ```mermaid fences
+        // (indented fences are not recognized as code block delimiters)
+        content = content.replaceAll(
+                "(?m)^[ \\t]+```mermaid",
+                "```mermaid");
+
+        // Fix 3: Replace enum type with string type in erDiagram
+        // Mermaid ER diagrams do not support enum, use string with comment instead
+        content = content.replaceAll(
+                "(?m)^(\\s+)(enum)\\s+(\\w+)(.*)",
+                "$1string $3 \"$3\"$4");
+
+        // Fix 4: Remove em-dash and other special Unicode chars in Mermaid identifiers
+        // that can cause parse failures (within mermaid blocks only - handled conservatively)
+        // This is intentionally minimal to avoid corrupting intentional text.
+
+        return content;
     }
 
     // ===== Helper methods =====

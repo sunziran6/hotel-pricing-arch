@@ -2,6 +2,8 @@ package com.hps.archdesign.agent;
 
 import com.hps.archdesign.model.ConversationEntry;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,13 +22,19 @@ public class DesignerAgent {
         String context = buildContextFromHistory(history);
         String fullPrompt = context + "\n\n## Design Task\n" + task;
 
-        String response = chatClient.prompt()
+        ChatResponse chatResponse = chatClient.prompt()
                 .system(systemPrompt)
                 .user(fullPrompt)
                 .call()
-                .content();
+                .chatResponse();
 
-        return new AgentResponse("Designer", "Architecture Designer", response);
+        String response = chatResponse.getResult().getOutput().getText();
+        Usage usage = chatResponse.getMetadata().getUsage();
+
+        return new AgentResponse("Designer", "Architecture Designer", response,
+                usage != null ? usage.getPromptTokens().longValue() : null,
+                usage != null ? usage.getGenerationTokens().longValue() : null,
+                usage != null ? usage.getTotalTokens().longValue() : null);
     }
 
     private String buildSystemPrompt(String priorKnowledge, String caseStudy) {
@@ -66,6 +74,14 @@ public class DesignerAgent {
                 - For deployability (QA-7): use containerization, environment-specific configuration.
                 - For monitorability (QA-8): integrate metrics collection and logging.
                 - For testability (QA-9): design for dependency injection, use interfaces for external dependencies.
+
+                ## Mermaid Syntax Rules (CRITICAL - for Mermaid 10.9.x compatibility):
+                - NEVER indent the opening ```mermaid fence (no leading spaces or tabs).
+                - In UpdateRelStyle(), numeric offset values MUST NOT be quoted: use $offsetY=-60 NOT $offsetY="-60".
+                - In erDiagram, use `string` type for enumeration fields, NOT `enum`. Annotate enum values as a comment in the description field.
+                - In C4 diagrams (C4Context, C4Container, C4Deployment, C4Component), the first line after the diagram type must be a `title` or element definition, NOT a blank line.
+                - Use consistent 2-space indentation within diagram blocks.
+                - Ensure all parentheses and braces are properly closed.
 
                 ## Output Format:
                 1. Start with a brief summary of your design approach.
