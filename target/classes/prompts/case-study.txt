@@ -1,0 +1,46 @@
+# Hotel Pricing System (HPS) - Case Study
+
+## Design Purpose
+This project is greenfield development — complete replacement of an existing system. The purpose is to make initial architectural decisions to support construction from scratch.
+
+## Constraints
+| ID    | Constraint |
+|-------|-----------|
+| CON-1 | Users interact through a web browser on different platforms (Windows, OSX, Linux, different devices). |
+| CON-2 | Manage users through cloud provider identity service and host resources in the cloud. |
+| CON-3 | Code hosted on a proprietary Git-based platform already in use by other projects. |
+| CON-4 | Initial release in 6 months; MVP demo to internal stakeholders in at most 2 months. |
+| CON-5 | Initially interact with existing systems through REST APIs; may later support other protocols. |
+| CON-6 | Cloud-native approach should be favored. |
+
+## Architectural Concerns
+| ID    | Concern |
+|-------|---------|
+| CRN-1 | Establish an overall initial system structure. |
+| CRN-2 | Leverage team's knowledge about Java technologies, Angular framework, and Kafka. |
+| CRN-3 | Allocate work to members of the development team. |
+| CRN-4 | Avoid introducing technical debt. |
+| CRN-5 | Set up a continuous deployment infrastructure. |
+
+## Primary Functionality (Use Cases)
+| ID     | Use Case      | Description |
+|--------|---------------|-------------|
+| HPS-1  | Log In        | User (commercial or administrator) provides credentials. System checks against User Identity Service. Once logged in, user can only access authorized hotels. |
+| HPS-2  | Change Prices | User selects an authorized hotel, selects dates, changes base rate or fixed rate. All derived rates are recalculated. Price changes can be simulated before committing. Changed prices are pushed to Channel Management System and available for external querying. |
+| HPS-3  | Query Prices  | User or external system queries prices for a given hotel through UI or query API. |
+| HPS-4  | Manage Hotels | Administrator adds/changes/modifies hotel info including tax rates, available rates, room types. |
+| HPS-5  | Manage Rates  | Administrator adds/changes/modifies rates including calculation business rules for different rates. |
+| HPS-6  | Manage Users  | Administrator changes permissions for a given user. |
+
+## Quality Attributes
+| ID   | QA            | Scenario | Associated UC | Importance | Difficulty |
+|------|---------------|----------|--------------|------------|------------|
+| QA-1 | Performance   | A base rate price is changed for a specific hotel and date; prices for all rates and room types are published (ready for query) in less than 100 ms. | HPS-2 | High | High |
+| QA-2 | Reliability   | Multiple price changes on a given hotel; 100% of changes are published successfully and received by Channel Management System. | HPS-2 | High | High |
+| QA-3 | Availability  | Pricing queries uptime SLA must be 99.9% outside of maintenance windows. | All | High | High |
+| QA-4 | Scalability   | Initially support minimum 100,000 price queries/day through API; capable of handling up to 1,000,000 without decreasing average latency by more than 20%. | HPS-3 | High | High |
+| QA-5 | Security      | User credentials validated against User Identity Service; only authorized functions presented after login. | All | High | Medium |
+| QA-6 | Modifiability | Support price query endpoint with different protocol (e.g., gRPC) without changes to core components. | All | Medium | Medium |
+| QA-7 | Deployability | Application moved between nonproduction environments as part of development; no code changes needed. | All | Medium | Medium |
+| QA-8 | Monitorability| System operator measures performance and reliability of price publication; 100% of measures collectable. | HPS-2 | Medium | Medium |
+| QA-9 | Testability   | 100% of system elements should support integration testing independently of external systems. | All | Medium | Medium |

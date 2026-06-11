@@ -3,12 +3,11 @@ spring:
     name: hotel-pricing-arch-design
 
   ai:
-    openai:
+    dashscope:
       api-key: sk_oDXLa6YiQ0AlfocqNJlvuxiWig4Ah9JUssleQrFDKAE
-      base-url: https://api.deepseek.com
       chat:
         options:
-          model: deepseek-chat
+          model: deepseek-v4-pro
           temperature: 0.3
 
 # Conversation log output directory
@@ -21,4 +20,4 @@ app:
 logging:
   level:
     com.hps.archdesign: DEBUG
-    org.springframework.ai.openai: DEBUG
+    com.alibaba.cloud.ai: INFO
