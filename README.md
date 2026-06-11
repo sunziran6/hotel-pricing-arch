@@ -2,8 +2,8 @@
 
 Software Architecture (2026) Assignment 2  
 **AI Paradigm**: Multi-Agent (Distributed Reasoning + Collaborative Verification)  
-**LLM**: deepseek-v4-pro  
-**Framework**: Spring AI Alibaba
+**LLM**: deepseek/deepseek-v4-pro  
+**Framework**: Spring AI OpenAI (DeepSeek via OpenAI-compatible API)
 
 ## Quick Start
 
@@ -14,8 +14,9 @@ Edit `src/main/resources/application.yml`:
 ```yaml
 spring:
   ai:
-    dashscope:
+    openai:
       api-key: ${DASHSCOPE_API_KEY:your-actual-api-key-here}
+      base-url: https://api.ppio.com/openai
 ```
 
 Or set environment variable:
@@ -114,11 +115,11 @@ src/main/java/com/hps/archdesign/
 
 - Java 21
 - Maven 3.9+
-- DashScope API key (for deepseek-v4-pro access)
+- API key for DeepSeek API (OpenAI-compatible endpoint)
 
 ## Dependencies
 
 - Spring Boot 3.4.1
-- Spring AI Alibaba 1.0.0-M5
+- Spring AI OpenAI 1.0.0-M6 (DeepSeek via OpenAI-compatible API)
 - Lombok
 - Jackson

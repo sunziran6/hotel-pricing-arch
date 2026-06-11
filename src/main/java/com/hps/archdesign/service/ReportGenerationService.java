@@ -1,6 +1,7 @@
 package com.hps.archdesign.service;
 
 import com.hps.archdesign.model.ADDStep;
+import com.hps.archdesign.model.ConversationEntry;
 import com.hps.archdesign.model.IterationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ReportGenerationService {
@@ -33,11 +36,11 @@ public class ReportGenerationService {
                 new FileOutputStream(filename), StandardCharsets.UTF_8))) {
             writeHeader(w);
             writeAddStep1(w);
-            writeIteration1(w, results);
-            writeIteration2(w, results);
-            writeIteration3(w, results);
-            writeIteration4(w, results);
-            writeInteractionCostAnalysis(w);
+            writeIterationContent(w, results, 1);
+            writeIterationContent(w, results, 2);
+            writeIterationContent(w, results, 3);
+            writeIterationContent(w, results, 4);
+            writeInteractionCostAnalysis(w, results);
             writeIndividualReflection(w);
 
             log.info("Report saved to: {}", filename);
@@ -53,8 +56,8 @@ public class ReportGenerationService {
         w.println("| Field | Value |");
         w.println("|-------|-------|");
         w.println("| **AI Paradigm** | Multi-Agent (Distributed Reasoning + Collaborative Verification) |");
-        w.println("| **LLM Used** | deepseek-v4-pro |");
-        w.println("| **Framework** | Spring AI Alibaba |");
+        w.println("| **LLM Used** | deepseek/deepseek-v4-pro |");
+        w.println("| **Framework** | Spring AI OpenAI (DeepSeek via OpenAI-compatible API) |");
         w.println("| **Design Method** | Attribute-Driven Design (ADD) 3.0 |");
         w.println("| **Report Date** | " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + " |");
         w.println("| **Total Iterations** | 4 |");
@@ -62,7 +65,7 @@ public class ReportGenerationService {
         w.println("---");
     }
 
-    // ===== ADD Step 1 =====
+    // ===== ADD Step 1: Review Inputs =====
     private void writeAddStep1(PrintWriter w) {
         w.println();
         w.println("# ADD Step 1: Review Inputs");
@@ -96,688 +99,107 @@ public class ReportGenerationService {
         w.println("---");
     }
 
-    // ===== Iteration 1 =====
-    private void writeIteration1(PrintWriter w, List<IterationResult> results) {
+    // ===== Iteration content: driven by actual multi-agent output =====
+    private void writeIterationContent(PrintWriter w, List<IterationResult> results, int iterationNum) {
+        IterationResult result = findResult(results, iterationNum);
+        if (result == null) {
+            w.println();
+            w.println("# Iteration " + iterationNum);
+            w.println();
+            w.println("> ⚠ No data available for this iteration.");
+            w.println();
+            w.println("---");
+            return;
+        }
+
         w.println();
-        w.println("# 1) Iteration 1: Establishing an Overall System Structure");
+        w.println("# " + iterationNum + ") Iteration " + iterationNum + ": " + result.getIterationGoal());
         w.println();
-        w.println("## ADD Step 2: Establish Iteration Goal by Selecting Drivers");
+
+        // Write each ADD step with its content (from Designer agent)
+        for (ADDStep step : result.getSteps()) {
+            w.println("## ADD Step " + step.getStepNumber() + ": " + step.getStepName());
+            w.println();
+            w.println(step.getContent());
+            w.println();
+        }
+
+        // Write Reviewer's assessment (last Reviewer entry in conversation)
+        writeReviewerAssessment(w, result);
+
+        // Write final design decision if set
+        if (result.getFinalDesignDecision() != null && !result.getFinalDesignDecision().isBlank()) {
+            w.println("## Final Design Decision for Iteration " + iterationNum);
+            w.println();
+            w.println(result.getFinalDesignDecision());
+            w.println();
+        }
+
+        // Summary of review status
+        w.println("## Iteration " + iterationNum + " — Review Status");
         w.println();
-        w.println("**Goal**: Establish the overall system structure that satisfies CRN-1, CON-6 (cloud-native),");
-        w.println("CON-1 (cross-platform web access), CON-2 (cloud identity), CON-4 (timeline), and");
-        w.println("provides a foundation for all quality attributes.");
-        w.println();
-        w.println("**Selected Drivers**: CRN-1, CON-6, CON-1, CON-2, CON-4, CRN-2, QA-5");
-        w.println();
-        w.println("## ADD Step 3: Choose Elements to Refine");
-        w.println();
-        w.println("Greenfield development — the Hotel Pricing System itself is the only element,");
-        w.println("to be refined by decomposition into major architectural containers.");
-        w.println();
-        w.println("## ADD Step 4: Choose Design Concepts");
-        w.println();
-        w.println("### Alternative Evaluation");
-        w.println();
-        w.println("| Alternative | Pros | Cons | Verdict |");
-        w.println("|-------------|------|------|---------|");
-        w.println("| Monolithic Three-Tier | Simple deployment, fast initial dev | Poor scalability, tight coupling, violates CON-6 | **REJECTED** |");
-        w.println("| Full Microservices | Independent scaling (QA-4), isolated deploy (QA-7) | High operational complexity, network overhead, risks CON-4 timeline | **REJECTED** |");
-        w.println("| **Modular Monolith** | Fast delivery (CON-4), clear boundaries for future extraction, cloud-native deployable | Single deployment unit initially | **SELECTED** |");
-        w.println();
-        w.println("**Rationale**: Modular monolith with clear service boundaries provides the best balance");
-        w.println("of delivery speed (CON-4), cloud-native compatibility (CON-6), and architectural clarity");
-        w.println("(CRN-1). Components are designed with independent interfaces so they can be extracted");
-        w.println("into separate services when scaling demands it.");
-        w.println();
-        w.println("## ADD Step 5: Instantiate Elements and Define Interfaces");
-        w.println();
-        w.println("### System Context Diagram (C4 Level 1)");
-        w.println();
-        w.println("```mermaid");
-        w.println("C4Context");
-        w.println("    title System Context Diagram — Hotel Pricing System");
-        w.println();
-        w.println("    Person(commercial_user, \"Commercial User\", \"Hotel revenue manager accessing pricing functions\")");
-        w.println("    Person(admin, \"Administrator\", \"System administrator managing hotels, rates, users\")");
-        w.println();
-        w.println("    System(hps, \"Hotel Pricing System\", \"Manages hotel pricing: price changes, queries, hotel/rate/user administration\")");
-        w.println();
-        w.println("    System_Ext(identity, \"User Identity Service\", \"Cloud-based identity and authentication provider\")");
-        w.println("    System_Ext(cms, \"Channel Management System\", \"External system receiving published price updates\")");
-        w.println("    System_Ext(ext_query, \"External Query Systems\", \"Third-party systems querying prices via API\")");
-        w.println();
-        w.println("    Rel(commercial_user, hps, \"Views/changes prices, queries\", \"HTTPS\")");
-        w.println("    Rel(admin, hps, \"Manages hotels, rates, users\", \"HTTPS\")");
-        w.println("    Rel(hps, identity, \"Authenticates users, validates credentials\", \"OAuth 2.0 / OIDC\")");
-        w.println("    Rel(hps, cms, \"Pushes price changes\", \"REST / Kafka\")");
-        w.println("    Rel(ext_query, hps, \"Queries prices\", \"REST / gRPC\")");
-        w.println("```");
-        w.println();
-        w.println("### Container Diagram (C4 Level 2)");
-        w.println();
-        w.println("```mermaid");
-        w.println("C4Container");
-        w.println("    title Container Diagram — Hotel Pricing System");
-        w.println();
-        w.println("    Person(user, \"User\", \"Commercial or Administrator\")");
-        w.println();
-        w.println("    Container_Boundary(hps_boundary, \"Hotel Pricing System\") {");
-        w.println("        Container(spa, \"Angular SPA\", \"Angular, TypeScript\", \"Cross-platform web UI (CON-1)\")");
-        w.println("        Container(gateway, \"API Gateway\", \"Spring Cloud Gateway\", \"Routes requests, authentication, rate limiting\")");
-        w.println("        Container(pricing_svc, \"Pricing Service\", \"Java, Spring Boot\", \"Core pricing: calculation, simulation, publication (HPS-2)\")");
-        w.println("        Container(query_svc, \"Query Service\", \"Java, Spring Boot\", \"High-performance price queries with caching (HPS-3)\")");
-        w.println("        Container(hotel_svc, \"Hotel Mgmt Service\", \"Java, Spring Boot\", \"Hotel, rate, room type administration (HPS-4, HPS-5)\")");
-        w.println("        Container(user_svc, \"User Mgmt Service\", \"Java, Spring Boot\", \"User permission management (HPS-6)\")");
-        w.println("        Container(kafka, \"Kafka Broker\", \"Apache Kafka\", \"Event-driven messaging for reliable price publication\")");
-        w.println("        ContainerDb(postgres, \"PostgreSQL\", \"Relational Database\", \"Stores hotels, rates, prices, users, outbox events\")");
-        w.println("        ContainerDb(redis, \"Redis Cache\", \"In-Memory Cache\", \"Caches query results for low-latency access (QA-1, QA-4)\")");
-        w.println("    }");
-        w.println();
-        w.println("    System_Ext(identity, \"User Identity Service\", \"Cloud IAM\")");
-        w.println("    System_Ext(cms, \"Channel Mgmt System\", \"External CMS\")");
-        w.println("    System_Ext(ext_query, \"External Systems\", \"Third-party query clients\")");
-        w.println();
-        w.println("    Rel(user, spa, \"Uses\", \"HTTPS\")");
-        w.println("    Rel(spa, gateway, \"API calls\", \"HTTPS/REST\")");
-        w.println("    Rel(gateway, pricing_svc, \"Routes to\", \"REST\")");
-        w.println("    Rel(gateway, query_svc, \"Routes to\", \"REST\")");
-        w.println("    Rel(gateway, hotel_svc, \"Routes to\", \"REST\")");
-        w.println("    Rel(gateway, user_svc, \"Routes to\", \"REST\")");
-        w.println("    Rel(gateway, identity, \"Validates tokens\", \"OAuth 2.0\")");
-        w.println("    Rel(pricing_svc, kafka, \"Publishes events\", \"Kafka Protocol\")");
-        w.println("    Rel(pricing_svc, postgres, \"Reads/writes\", \"JDBC\")");
-        w.println("    Rel(query_svc, redis, \"Caches queries\", \"Redis Protocol\")");
-        w.println("    Rel(query_svc, postgres, \"Reads (replica)\", \"JDBC\")");
-        w.println("    Rel(hotel_svc, postgres, \"Reads/writes\", \"JDBC\")");
-        w.println("    Rel(user_svc, postgres, \"Reads/writes\", \"JDBC\")");
-        w.println("    Rel(kafka, cms, \"Delivers updates\", \"Kafka Connect / REST\")");
-        w.println("    Rel(ext_query, query_svc, \"Queries prices\", \"REST / gRPC\")");
-        w.println("```");
-        w.println();
-        w.println("### Deployment Diagram (Multi-AZ Cloud)");
-        w.println();
-        w.println("```mermaid");
-        w.println("graph TB");
-        w.println("    subgraph \"Cloud Region\"");
-        w.println("        subgraph \"AZ-A\"");
-        w.println("            lb_a[Load Balancer]");
-        w.println("            svc_a[Service Instances x2]");
-        w.println("            kafka_a[Kafka Broker x3]");
-        w.println("            redis_a[Redis Primary]");
-        w.println("            db_a[(PostgreSQL Primary)]");
-        w.println("        end");
-        w.println("        subgraph \"AZ-B\"");
-        w.println("            lb_b[Load Balancer]");
-        w.println("            svc_b[Service Instances x2]");
-        w.println("            kafka_b[Kafka Broker x3]");
-        w.println("            redis_b[Redis Replica]");
-        w.println("            db_b[(PostgreSQL Standby)]");
-        w.println("        end");
-        w.println("    end");
-        w.println("    internet((Internet)) --> lb_a & lb_b");
-        w.println("    lb_a --> svc_a");
-        w.println("    lb_b --> svc_b");
-        w.println("    svc_a & svc_b --> kafka_a & kafka_b");
-        w.println("    svc_a & svc_b --> db_a & db_b");
-        w.println("    svc_a & svc_b --> redis_a & redis_b");
-        w.println("    db_a -.->|\"Async Replication\"| db_b");
-        w.println("    redis_a -.->|\"Replication\"| redis_b");
-        w.println("    kafka_a -.->|\"Mirroring\"| kafka_b");
-        w.println("```");
-        w.println();
-        w.println("## ADD Step 6: Sketch Views and Record Design Decisions");
-        w.println();
-        w.println("**Key Design Decisions:**");
-        w.println();
-        w.println("| ID | Decision | Rationale | Drivers Addressed |");
-        w.println("|----|----------|-----------|-------------------|");
-        w.println("| D1 | Modular monolith architecture | Fastest path to 2-month MVP (CON-4), cloud-native deployable (CON-6) | CON-4, CON-6, CRN-1 |");
-        w.println("| D2 | Angular SPA frontend | Cross-platform web access (CON-1), team expertise (CRN-2) | CON-1, CRN-2 |");
-        w.println("| D3 | Spring Cloud Gateway | Single entry point for auth, rate limiting, routing | QA-5, QA-4 |");
-        w.println("| D4 | Kafka for price publication | Reliable async messaging, decouples CMS from core pricing | QA-2, CRN-2 |");
-        w.println("| D5 | PostgreSQL + Redis | Relational integrity for pricing data, caching for query performance | QA-1, QA-4 |");
-        w.println("| D6 | OAuth 2.0 / OIDC identity integration | Leverages cloud identity service (CON-2) | CON-2, QA-5 |");
-        w.println();
-        w.println("## ADD Step 7: Analyze Current Design and Review Iteration Goal");
-        w.println();
-        w.println("| Check | Status | Evidence |");
-        w.println("|-------|--------|----------|");
-        w.println("| CRN-1: Overall structure established | ✓ PASS | System context + container diagrams define clear boundaries |");
-        w.println("| CON-6: Cloud-native approach | ✓ PASS | Multi-AZ deployment, containerized services, cloud IAM |");
-        w.println("| CON-1: Cross-platform web access | ✓ PASS | Angular SPA runs in any modern browser |");
-        w.println("| CON-2: Cloud identity service | ✓ PASS | OAuth 2.0/OIDC integration with external identity provider |");
-        w.println("| CRN-2: Java/Angular/Kafka | ✓ PASS | All three technologies utilized in the architecture |");
-        w.println("| CON-4: Timeline feasibility | ✓ PASS | Modular monolith enables 2-month MVP delivery |");
-        w.println();
-        w.println("All drivers satisfied. Iteration 1 goal achieved.");
+        w.println("| Check | Status |");
+        w.println("|-------|--------|");
+        w.println("| Review Passed | " + (result.isReviewPassed() ? "✓ PASS" : "✗ NEEDS REVISION") + " |");
+        w.println("| Conversation Entries | " + result.getConversation().size() + " |");
+        w.println("| ADD Steps Completed | " + result.getSteps().size() + " |");
         w.println();
         w.println("---");
     }
 
-    // ===== Iteration 2 =====
-    private void writeIteration2(PrintWriter w, List<IterationResult> results) {
-        w.println();
-        w.println("# 2) Iteration 2: Identifying Structures to Support Primary Functionality");
-        w.println();
-        w.println("## ADD Step 2: Establish Iteration Goal");
-        w.println();
-        w.println("**Goal**: Decompose core services into components that support all six primary use cases");
-        w.println("(HPS-1 through HPS-6) while satisfying QA-1 (performance), QA-2 (reliability),");
-        w.println("QA-4 (scalability), QA-5 (security), and QA-6 (modifiability).");
-        w.println();
-        w.println("## ADD Step 3: Choose Elements to Refine");
-        w.println();
-        w.println("Refine the four service containers from Iteration 1: Pricing Service, Query Service,");
-        w.println("Hotel Management Service, and User Management Service.");
-        w.println();
-        w.println("## ADD Step 4-5: Design Concepts and Instantiate Elements");
-        w.println();
-        w.println("### Component Diagram — Pricing Service & Related Components");
-        w.println();
-        w.println("```mermaid");
-        w.println("graph TB");
-        w.println("    subgraph \"Pricing Service\"");
-        w.println("        PC[Price Controller<br/>REST API]");
-        w.println("        CE[Calculation Engine<br/>Derives rates from base]");
-        w.println("        SIM[Simulation Service<br/>Preview before commit]");
-        w.println("        PUB[Publication Service<br/>Outbox + Kafka publish]");
-        w.println("        RR[Rate Rule Resolver<br/>Evaluates business rules]");
-        w.println("    end");
-        w.println();
-        w.println("    subgraph \"Query Service\"");
-        w.println("        QC[Query Controller<br/>REST/gRPC endpoints]");
-        w.println("        CM[Cache Manager<br/>Redis read/write/invalidate]");
-        w.println("        QR[Query Repository<br/>Read-optimized queries]");
-        w.println("    end");
-        w.println();
-        w.println("    subgraph \"Hotel Management Service\"");
-        w.println("        HC[Hotel Controller]");
-        w.println("        RC[Rate Controller]");
-        w.println("        HR[Hotel Repository]");
-        w.println("    end");
-        w.println();
-        w.println("    subgraph \"User Management Service\"");
-        w.println("        UC[User Controller]");
-        w.println("        AS[Auth Service<br/>JWT + Cloud Identity]");
-        w.println("        PR[Permission Repository]");
-        w.println("    end");
-        w.println();
-        w.println("    subgraph \"Infrastructure\"");
-        w.println("        DB[(PostgreSQL)]");
-        w.println("        CACHE[(Redis)]");
-        w.println("        KAFKA[Kafka]");
-        w.println("    end");
-        w.println();
-        w.println("    PC --> CE --> RR");
-        w.println("    PC --> SIM");
-        w.println("    PC --> PUB --> KAFKA");
-        w.println("    PC --> DB");
-        w.println("    PUB --> DB");
-        w.println("    QC --> CM --> CACHE");
-        w.println("    QC --> QR --> DB");
-        w.println("    HC --> HR --> DB");
-        w.println("    RC --> HR");
-        w.println("    UC --> PR --> DB");
-        w.println("    UC --> AS");
-        w.println("```");
-        w.println();
-        w.println("### Sequence Diagram — HPS-2: Change Prices");
-        w.println();
-        w.println("```mermaid");
-        w.println("sequenceDiagram");
-        w.println("    actor U as User");
-        w.println("    participant SPA as Angular SPA");
-        w.println("    participant GW as API Gateway");
-        w.println("    participant ID as Identity Service");
-        w.println("    participant PS as Pricing Service");
-        w.println("    participant CE as Calculation Engine");
-        w.println("    participant SIM as Simulation Service");
-        w.println("    participant PUB as Publication Service");
-        w.println("    participant DB as PostgreSQL");
-        w.println("    participant K as Kafka");
-        w.println("    participant CMS as Channel Mgmt System");
-        w.println();
-        w.println("    U->>SPA: Select hotel, dates, new base rate");
-        w.println("    SPA->>GW: POST /api/prices/simulate");
-        w.println("    GW->>ID: Validate JWT");
-        w.println("    ID-->>GW: Valid");
-        w.println("    GW->>PS: Forward simulation request");
-        w.println("    PS->>CE: Calculate derived rates");
-        w.println("    CE->>CE: Apply rate calculation rules");
-        w.println("    CE-->>PS: All derived prices");
-        w.println("    PS->>SIM: Simulate change");
-        w.println("    SIM-->>PS: Simulation result");
-        w.println("    PS-->>GW: Simulation response");
-        w.println("    GW-->>SPA: Display preview");
-        w.println("    SPA-->>U: Show simulation");
-        w.println();
-        w.println("    U->>SPA: Confirm price change");
-        w.println("    SPA->>GW: POST /api/prices/apply");
-        w.println("    GW->>ID: Validate JWT");
-        w.println("    GW->>PS: Forward apply");
-        w.println("    PS->>CE: Calculate final prices");
-        w.println("    CE-->>PS: Final prices");
-        w.println("    PS->>DB: BEGIN TX; INSERT prices; INSERT outbox_event; COMMIT");
-        w.println("    DB-->>PS: Committed");
-        w.println("    PS->>PUB: Notify publication ready");
-        w.println("    PUB->>DB: SELECT pending outbox events");
-        w.println("    PUB->>K: Publish PriceChangedEvent");
-        w.println("    K-->>PUB: ACK");
-        w.println("    PUB->>DB: UPDATE outbox SET status='PUBLISHED'");
-        w.println("    K->>CMS: Deliver event");
-        w.println("    CMS-->>K: ACK");
-        w.println("    PS-->>GW: Success (<100ms from commit)");
-        w.println("    GW-->>SPA: Success");
-        w.println("    SPA-->>U: ✓ Price updated");
-        w.println("```");
-        w.println();
-        w.println("### Sequence Diagram — HPS-3: Query Prices");
-        w.println();
-        w.println("```mermaid");
-        w.println("sequenceDiagram");
-        w.println("    actor C as External System");
-        w.println("    participant GW as API Gateway");
-        w.println("    participant QS as Query Service");
-        w.println("    participant CACHE as Redis");
-        w.println("    participant DB as PostgreSQL Read Replica");
-        w.println();
-        w.println("    C->>GW: GET /api/prices?hotelId=123&date=2026-06-15");
-        w.println("    GW->>GW: Rate limit check");
-        w.println("    GW->>QS: Forward query");
-        w.println("    QS->>CACHE: GET price:123:2026-06-15");
-        w.println("    alt Cache Hit");
-        w.println("        CACHE-->>QS: Cached price data (<5ms)");
-        w.println("        QS-->>GW: Price data");
-        w.println("    else Cache Miss");
-        w.println("        CACHE-->>QS: null");
-        w.println("        QS->>DB: SELECT prices WHERE hotel_id=? AND date=?");
-        w.println("        DB-->>QS: Price records");
-        w.println("        QS->>CACHE: SET price:123:2026-06-15 TTL 300");
-        w.println("        QS-->>GW: Price data");
-        w.println("    end");
-        w.println("    GW-->>C: JSON response");
-        w.println("```");
-        w.println();
-        w.println("### Entity-Relationship Diagram");
-        w.println();
-        w.println("```mermaid");
-        w.println("erDiagram");
-        w.println("    Hotel ||--o{ RoomType : has");
-        w.println("    Hotel ||--o{ Rate : defines");
-        w.println("    Hotel ||--o{ Price : \"has prices for\"");
-        w.println("    Hotel ||--o{ UserHotelPermission : \"authorized for\"");
-        w.println("    RoomType ||--o{ Price : \"priced per\"");
-        w.println("    Rate ||--o{ RateRule : \"has calculation rules\"");
-        w.println("    Rate ||--o{ Price : \"basis for\"");
-        w.println("    AppUser ||--o{ UserHotelPermission : has");
-        w.println();
-        w.println("    Hotel {");
-        w.println("        string id PK");
-        w.println("        string name");
-        w.println("        string address");
-        w.println("        decimal taxRate");
-        w.println("        boolean active");
-        w.println("    }");
-        w.println("    RoomType {");
-        w.println("        string id PK");
-        w.println("        string hotelId FK");
-        w.println("        string name");
-        w.println("        int capacity");
-        w.println("    }");
-        w.println("    Rate {");
-        w.println("        string id PK");
-        w.println("        string hotelId FK");
-        w.println("        string name");
-        w.println("        string type");
-        w.println("    }");
-        w.println("    RateRule {");
-        w.println("        string id PK");
-        w.println("        string rateId FK");
-        w.println("        string ruleType");
-        w.println("        decimal value");
-        w.println("        string dependsOnRateId FK");
-        w.println("    }");
-        w.println("    Price {");
-        w.println("        string id PK");
-        w.println("        string hotelId FK");
-        w.println("        string roomTypeId FK");
-        w.println("        string rateId FK");
-        w.println("        date effectiveDate");
-        w.println("        decimal amount");
-        w.println("        timestamp calculatedAt");
-        w.println("    }");
-        w.println("    AppUser {");
-        w.println("        string id PK");
-        w.println("        string email");
-        w.println("        string role");
-        w.println("        string identityProviderId");
-        w.println("    }");
-        w.println("    UserHotelPermission {");
-        w.println("        string id PK");
-        w.println("        string userId FK");
-        w.println("        string hotelId FK");
-        w.println("        string permission");
-        w.println("    }");
-        w.println("```");
-        w.println();
-        w.println("## ADD Step 6: View Documentation");
-        w.println();
-        w.println("All primary use cases are supported through the component architecture documented above.");
-        w.println();
-        w.println("| Use Case | Primary Components | Key Design Decisions |");
-        w.println("|----------|-------------------|---------------------|");
-        w.println("| HPS-1 Log In | Auth Service, API Gateway, User Identity Service | JWT-based session, cloud identity OAuth 2.0 |");
-        w.println("| HPS-2 Change Prices | Price Controller, Calculation Engine, Simulation, Publication Service, Kafka | Async publication via outbox, simulation before commit |");
-        w.println("| HPS-3 Query Prices | Query Controller, Cache Manager, Redis, Read Replica | Cache-first, TTL-based invalidation, read replica scaling |");
-        w.println("| HPS-4 Manage Hotels | Hotel Controller, Hotel Repository | Standard CRUD with authorization check |");
-        w.println("| HPS-5 Manage Rates | Rate Controller, Hotel Repository | Rate rules stored as data, evaluated by Calculation Engine |");
-        w.println("| HPS-6 Manage Users | User Controller, Permission Repository | Hotel-level permission granularity |");
-        w.println();
-        w.println("## ADD Step 7: Analysis");
-        w.println();
-        w.println("| Check | Status | Evidence |");
-        w.println("|-------|--------|----------|");
-        w.println("| All 6 use cases supported | ✓ PASS | Each use case maps to specific components |");
-        w.println("| QA-1: <100ms publication | ✓ PASS | DB write + async Kafka publish; response returns after commit |");
-        w.println("| QA-2: 100% reliable delivery | ✓ PASS | Transactional outbox pattern guarantees event persistence |");
-        w.println("| QA-4: Query scalability | ✓ PASS | Redis cache + read replicas enable horizontal scaling |");
-        w.println("| QA-5: Security | ✓ PASS | JWT + cloud identity + hotel-level permissions |");
-        w.println("| QA-6: Protocol extensibility | ✓ PASS | Query Controller abstracts protocol (REST now, gRPC ready) |");
-        w.println();
-        w.println("---");
+    /**
+     * Write the Reviewer agent's final assessment for an iteration.
+     */
+    private void writeReviewerAssessment(PrintWriter w, IterationResult result) {
+        // Find the last Reviewer entry in the conversation
+        ConversationEntry lastReview = null;
+        for (int i = result.getConversation().size() - 1; i >= 0; i--) {
+            ConversationEntry entry = result.getConversation().get(i);
+            if ("Reviewer".equals(entry.getAgentName())) {
+                lastReview = entry;
+                break;
+            }
+        }
+
+        if (lastReview != null) {
+            w.println("## Reviewer Assessment");
+            w.println();
+            w.println("> **Timestamp**: " + lastReview.getTimestamp());
+            w.println();
+            w.println(lastReview.getMessage());
+            w.println();
+        }
     }
 
-    // ===== Iteration 3 =====
-    private void writeIteration3(PrintWriter w, List<IterationResult> results) {
-        w.println();
-        w.println("# 3) Iteration 3: Addressing Reliability and Availability Quality Attributes");
-        w.println();
-        w.println("## ADD Step 2: Iteration Goal");
-        w.println();
-        w.println("**Goal**: Design mechanisms to satisfy QA-2 (100% reliable delivery), QA-3 (99.9% availability),");
-        w.println("QA-8 (monitorability), and QA-9 (testability).");
-        w.println();
-        w.println("**Selected Drivers**: QA-2, QA-3, QA-8, QA-9");
-        w.println();
-        w.println("## ADD Step 3-5: Design for Reliability and Availability");
-        w.println();
-        w.println("### Reliability Design (QA-2): Transactional Outbox + Kafka");
-        w.println();
-        w.println("The core mechanism for guaranteeing 100% price change delivery:");
-        w.println();
-        w.println("1. **Transactional Outbox**: Price changes and outbox events are written atomically in a single database transaction.");
-        w.println("2. **Outbox Poller**: A background process polls the outbox table for PENDING events and publishes to Kafka.");
-        w.println("3. **Retry with Backoff**: Failed publishes are retried up to 3 times with exponential backoff.");
-        w.println("4. **Dead Letter Queue**: After exhausting retries, events are moved to a DLQ for manual inspection.");
-        w.println("5. **Idempotent Consumption**: CMS-side consumers use event IDs for deduplication.");
-        w.println();
-        w.println("### Reliable Publication Flow");
-        w.println();
-        w.println("```mermaid");
-        w.println("sequenceDiagram");
-        w.println("    participant PS as Pricing Service");
-        w.println("    participant DB as PostgreSQL");
-        w.println("    participant POLLER as Outbox Poller");
-        w.println("    participant K as Kafka");
-        w.println("    participant DLQ as Dead Letter Queue");
-        w.println("    participant CMS as Channel Mgmt System");
-        w.println();
-        w.println("    PS->>DB: BEGIN TRANSACTION");
-        w.println("    PS->>DB: INSERT INTO price (...)");
-        w.println("    PS->>DB: INSERT INTO outbox (event_id, payload, status='PENDING')");
-        w.println("    PS->>DB: COMMIT");
-        w.println("    Note over PS,DB: Atomic write: price + event");
-        w.println();
-        w.println("    POLLER->>DB: SELECT * FROM outbox WHERE status='PENDING'");
-        w.println("    DB-->>POLLER: Pending events");
-        w.println();
-        w.println("    loop Each pending event");
-        w.println("        POLLER->>K: Produce(topic=\"price-changes\", event)");
-        w.println("        alt Success");
-        w.println("            K-->>POLLER: ACK");
-        w.println("            POLLER->>DB: UPDATE outbox SET status='PUBLISHED'");
-        w.println("        else Failure (retry < 3)");
-        w.println("            K-->>POLLER: Error");
-        w.println("            POLLER->>POLLER: Wait (exponential backoff)");
-        w.println("            POLLER->>K: Retry");
-        w.println("        else Failure (retry >= 3)");
-        w.println("            POLLER->>DLQ: Move to Dead Letter Queue");
-        w.println("            POLLER->>DB: UPDATE outbox SET status='FAILED'");
-        w.println("        end");
-        w.println("    end");
-        w.println();
-        w.println("    K->>CMS: Deliver PriceChangedEvent");
-        w.println("    CMS-->>K: ACK");
-        w.println("```");
-        w.println();
-        w.println("### Availability Design (QA-3): 99.9% SLA");
-        w.println();
-        w.println("| Mechanism | Purpose | Implementation |");
-        w.println("|-----------|---------|----------------|");
-        w.println("| Multi-AZ Deployment | Survive AZ failure | Service instances in 3 AZs |");
-        w.println("| Load Balancing | Distribute traffic | ALB with health checks |");
-        w.println("| Circuit Breaker | Prevent cascading failures | Resilience4j on external calls (CMS, Identity) |");
-        w.println("| Graceful Degradation | Query prices even if CMS down | Price data served from local DB/cache |");
-        w.println("| Read Replicas | Query resilience | PostgreSQL read replicas in each AZ |");
-        w.println("| Health Checks + Auto-Recovery | Self-healing | Kubernetes liveness/readiness probes |");
-        w.println();
-        w.println("### Circuit Breaker State Machine");
-        w.println();
-        w.println("```mermaid");
-        w.println("stateDiagram-v2");
-        w.println("    [*] --> CLOSED");
-        w.println("    CLOSED --> OPEN: Failure threshold exceeded<br/>(5 failures in 10s window)");
-        w.println("    OPEN --> HALF_OPEN: Timeout elapsed (30s)");
-        w.println("    HALF_OPEN --> CLOSED: Probe request succeeds");
-        w.println("    HALF_OPEN --> OPEN: Probe request fails");
-        w.println("    state CLOSED {");
-        w.println("        NormalOperation --> CountFailures: Call fails");
-        w.println("        CountFailures --> NormalOperation: Below threshold");
-        w.println("        CountFailures --> TripBreaker: Threshold reached");
-        w.println("    }");
-        w.println("    state OPEN {");
-        w.println("        FastFail: Return fallback / cached response");
-        w.println("    }");
-        w.println("```");
-        w.println();
-        w.println("### Multi-AZ High Availability Deployment");
-        w.println();
-        w.println("```mermaid");
-        w.println("graph TB");
-        w.println("    subgraph \"Region\"");
-        w.println("        subgraph \"AZ-A\"");
-        w.println("            alb_a[ALB] --> svc_a[Services x2]");
-        w.println("            svc_a --> kafka_a[Kafka x3]");
-        w.println("            svc_a --> redis_a[(Redis Primary)]");
-        w.println("            svc_a --> db_a[(RDS Primary)]");
-        w.println("        end");
-        w.println("        subgraph \"AZ-B\"");
-        w.println("            alb_b[ALB] --> svc_b[Services x2]");
-        w.println("            svc_b --> kafka_b[Kafka x3]");
-        w.println("            svc_b --> redis_b[(Redis Replica)]");
-        w.println("            svc_b --> db_b[(RDS Standby)]");
-        w.println("        end");
-        w.println("        subgraph \"AZ-C\"");
-        w.println("            alb_c[ALB] --> svc_c[Services x2]");
-        w.println("            svc_c --> kafka_c[Kafka x3]");
-        w.println("            svc_c --> redis_c[(Redis Replica)]");
-        w.println("            svc_c --> db_c[(RDS Read Replica)]");
-        w.println("        end");
-        w.println("    end");
-        w.println("    db_a -.->|Sync Replication| db_b");
-        w.println("    db_a -.->|Async Replication| db_c");
-        w.println("```");
-        w.println();
-        w.println("### Monitorability Design (QA-8)");
-        w.println();
-        w.println("| Metric | Collection | Visualization | Alert |");
-        w.println("|--------|-----------|---------------|-------|");
-        w.println("| Price publication latency | Micrometer Timer | Grafana histogram | P95 > 100ms |");
-        w.println("| Publication success rate | Micrometer Counter | Grafana gauge | < 100% |");
-        w.println("| Outbox pending count | Micrometer Gauge | Grafana | > 100 pending |");
-        w.println("| DLQ message count | Micrometer Gauge | Grafana | > 0 |");
-        w.println("| Query latency (cache hit/miss) | Micrometer Timer | Grafana histogram | P99 > 50ms |");
-        w.println("| Circuit breaker state | Resilience4j metrics | Grafana | Open state |");
-        w.println("| Service health | Actuator /health | Prometheus | DOWN |");
-        w.println();
-        w.println("### Testability Design (QA-9)");
-        w.println();
-        w.println("| Testing Level | Approach | Tooling |");
-        w.println("|---------------|----------|---------|");
-        w.println("| Unit Tests | Mock dependencies via interfaces | JUnit 5, Mockito |");
-        w.println("| Integration Tests | Testcontainers for PostgreSQL, Kafka, Redis | Testcontainers |");
-        w.println("| Contract Tests | Consumer-driven contracts | Pact |");
-        w.println("| Architecture Tests | Fitness functions for layering rules | ArchUnit |");
-        w.println("| API Tests | REST/gRPC endpoint verification | REST Assured, gRPC test client |");
-        w.println();
-        w.println("## ADD Step 6-7: Analysis");
-        w.println();
-        w.println("| Check | Status | Evidence |");
-        w.println("|-------|--------|----------|");
-        w.println("| QA-2: 100% delivery | ✓ PASS | Outbox + Kafka + retry + DLQ |");
-        w.println("| QA-3: 99.9% availability | ✓ PASS | Multi-AZ, circuit breaker, graceful degradation |");
-        w.println("| QA-8: Full monitorability | ✓ PASS | Micrometer + Prometheus + Grafana stack |");
-        w.println("| QA-9: Independent testing | ✓ PASS | Interfaces for all external deps, Testcontainers |");
-        w.println();
-        w.println("---");
-    }
-
-    // ===== Iteration 4 =====
-    private void writeIteration4(PrintWriter w, List<IterationResult> results) {
-        w.println();
-        w.println("# 4) Iteration 4: Addressing Development and Operations");
-        w.println();
-        w.println("## ADD Step 2: Iteration Goal");
-        w.println();
-        w.println("**Goal**: Design the development and operations infrastructure to satisfy QA-7 (deployability),");
-        w.println("CRN-3 (work allocation), CRN-4 (avoid technical debt), CRN-5 (continuous deployment),");
-        w.println("CON-3 (Git-based), and CON-4 (2/6-month delivery).");
-        w.println();
-        w.println("## ADD Step 3-5: DevOps Design");
-        w.println();
-        w.println("### CI/CD Pipeline");
-        w.println();
-        w.println("```mermaid");
-        w.println("graph LR");
-        w.println("    subgraph \"Build & Test\"");
-        w.println("        GIT[Git Push<br/>CON-3] --> BUILD[Maven Build<br/>JUnit Tests]");
-        w.println("        BUILD --> SONAR[SonarQube<br/>Static Analysis]");
-        w.println("        SONAR --> ITEST[Integration Tests<br/>Testcontainers]");
-        w.println("        ITEST --> CTEST[Contract Tests<br/>Pact]");
-        w.println("        CTEST --> ATEST[Architecture Tests<br/>ArchUnit]");
-        w.println("    end");
-        w.println("    subgraph \"Package\"");
-        w.println("        ATEST --> DOCKER[Docker Build]");
-        w.println("        DOCKER --> REG[Push to Registry]");
-        w.println("    end");
-        w.println("    subgraph \"Deploy\"");
-        w.println("        REG --> DEV[Deploy to DEV<br/>Auto on commit]");
-        w.println("        DEV --> STAGE{Approve?}");
-        w.println("        STAGE -->|Yes| STAGING[Deploy to Staging<br/>Blue-Green]");
-        w.println("        STAGING --> PROD_APPROVE{Approve?}");
-        w.println("        PROD_APPROVE -->|Yes| PROD[Deploy to Production<br/>Blue-Green]");
-        w.println("        PROD --> MONITOR[Post-Deploy<br/>Monitoring]");
-        w.println("        MONITOR --> ROLLBACK[Auto Rollback<br/>if SLO violated]");
-        w.println("    end");
-        w.println("```");
-        w.println();
-        w.println("### Environment Promotion (QA-7)");
-        w.println();
-        w.println("```mermaid");
-        w.println("graph LR");
-        w.println("    DEV[Development<br/>Hot-reload] -->|Auto| INT[Integration<br/>Automated tests]");
-        w.println("    INT -->|Auto| STAGING[Staging<br/>Production mirror]");
-        w.println("    STAGING -->|Manual Gate| PROD[Production<br/>Multi-AZ]");
-        w.println("```");
-        w.println();
-        w.println("**Configuration Strategy**: All environment-specific values are externalized via Kubernetes");
-        w.println("ConfigMaps and Secrets. The same Docker image is promoted across environments with zero");
-        w.println("code changes, satisfying QA-7.");
-        w.println();
-        w.println("### Team Work Allocation (CRN-3)");
-        w.println();
-        w.println("```mermaid");
-        w.println("graph TB");
-        w.println("    subgraph \"Team 1: Frontend & Gateway\"");
-        w.println("        T1[Angular SPA<br/>API Gateway<br/>Auth Integration]");
-        w.println("    end");
-        w.println("    subgraph \"Team 2: Core Pricing\"");
-        w.println("        T2[Pricing Service<br/>Calculation Engine<br/>Query Service<br/>Redis Cache]");
-        w.println("    end");
-        w.println("    subgraph \"Team 3: Management & Integration\"");
-        w.println("        T3[Hotel Mgmt Service<br/>Rate Mgmt Service<br/>User Mgmt Service<br/>Kafka + CMS Connector]");
-        w.println("    end");
-        w.println("    subgraph \"Shared Platform\"");
-        w.println("        SHARED[CI/CD Pipeline<br/>Kubernetes Config<br/>Monitoring<br/>Architecture Governance]");
-        w.println("    end");
-        w.println("    T1 -.->|REST Contract| T2");
-        w.println("    T1 -.->|REST Contract| T3");
-        w.println("    T2 -.->|Kafka Events| T3");
-        w.println("    SHARED --> T1 & T2 & T3");
-        w.println("```");
-        w.println();
-        w.println("### Delivery Timeline — MVP and Full Scope (CON-4)");
-        w.println();
-        w.println("```mermaid");
-        w.println("gantt");
-        w.println("    title Delivery Timeline");
-        w.println("    dateFormat  YYYY-MM-DD");
-        w.println("    axisFormat  %b Week %W");
-        w.println();
-        w.println("    section MVP (2 months)");
-        w.println("    HPS-1 Login           :m1, 2026-06-15, 2w");
-        w.println("    HPS-2 Basic Price Chg :m2, after m1, 3w");
-        w.println("    HPS-3 REST Query      :m3, after m1, 3w");
-        w.println("    Basic CI/CD           :m4, 2026-06-15, 4w");
-        w.println("    MVP Demo              :milestone, after m3, 0d");
-        w.println();
-        w.println("    section Full Release (6 months)");
-        w.println("    HPS-2 Simulation      :f1, after m3, 2w");
-        w.println("    HPS-3 gRPC Endpoint   :f2, after m3, 3w");
-        w.println("    HPS-4 Manage Hotels   :f3, after m3, 3w");
-        w.println("    HPS-5 Manage Rates    :f4, after m3, 3w");
-        w.println("    HPS-6 Manage Users    :f5, after m3, 2w");
-        w.println("    Multi-AZ Deployment   :f6, after m3, 4w");
-        w.println("    Full Monitoring       :f7, after m3, 4w");
-        w.println("    Performance Test      :f8, after f6, 3w");
-        w.println("    Production Release    :milestone, after f8, 0d");
-        w.println("```");
-        w.println();
-        w.println("### Technical Debt Prevention (CRN-4)");
-        w.println();
-        w.println("| Practice | Implementation |");
-        w.println("|----------|----------------|");
-        w.println("| Interface Contracts | Explicit Java interfaces for all service boundaries |");
-        w.println("| Static Analysis | SonarQube quality gate in CI pipeline |");
-        w.println("| Architecture Fitness Functions | ArchUnit tests validating layer dependencies |");
-        w.println("| Code Review | Required PR approval before merge (CON-3 Git platform) |");
-        w.println("| Dependency Management | Dependabot/Renovate for automated updates |");
-        w.println();
-        w.println("## ADD Step 6-7: Analysis");
-        w.println();
-        w.println("| Check | Status | Evidence |");
-        w.println("|-------|--------|----------|");
-        w.println("| QA-7: Environment portability | ✓ PASS | Same Docker image, externalized config |");
-        w.println("| CRN-3: Work allocation | ✓ PASS | 3 teams with clear component boundaries |");
-        w.println("| CRN-4: Technical debt | ✓ PASS | ArchUnit, SonarQube, interface contracts |");
-        w.println("| CRN-5: Continuous deployment | ✓ PASS | Full CI/CD with blue-green deployment |");
-        w.println("| CON-3: Git-based platform | ✓ PASS | Git push triggers CI/CD pipeline |");
-        w.println("| CON-4: 2/6 month delivery | ✓ PASS | MVP scope defined, full scope scheduled |");
-        w.println();
-        w.println("---");
-    }
-
-    private void writeInteractionCostAnalysis(PrintWriter w) {
+    // ===== Interaction Cost Analysis =====
+    private void writeInteractionCostAnalysis(PrintWriter w, List<IterationResult> results) {
         w.println();
         w.println("# Interaction Cost Analysis");
         w.println();
+
+        // Count total conversation entries
+        int totalConversationEntries = results.stream()
+                .mapToInt(r -> r.getConversation().size())
+                .sum();
+
+        // Count per-iteration entries
+        StringBuilder iterDetail = new StringBuilder();
+        for (IterationResult r : results) {
+            iterDetail.append(String.format("| %d (%s) | %d | %d |\n",
+                    r.getIterationNumber(),
+                    truncateGoal(r.getIterationGoal(), 30),
+                    r.getSteps().size(),
+                    r.getConversation().size()));
+        }
+
         w.println("| Metric | Value |");
         w.println("|--------|-------|");
         w.println("| The way of completing the assignment | Multi-Agent (Distributed Reasoning + Collaborative Verification) |");
-        w.println("| The LLM used | deepseek-v4-pro |");
+        w.println("| The LLM used | deepseek/deepseek-v4-pro |");
         w.println("| Number of Human Interaction turns | 1 (initial application execution) |");
-        w.println("| Token Consumption K tokens | See conversation logs for per-iteration token counts |");
-        w.println("| Time Cost min | See timestamps in conversation logs for duration |");
+        w.println("| Total Conversation Entries | " + totalConversationEntries + " |");
+        w.println("| Token Consumption | See conversation logs for per-iteration token counts |");
+        w.println("| Time Cost | See timestamps in conversation logs for duration |");
         w.println();
         w.println("## Multi-Agent Interaction Structure");
         w.println();
@@ -789,43 +211,18 @@ public class ReportGenerationService {
         w.println("| **Designer Agent** | Senior Software Architect | Architectural decision making, Mermaid diagram generation, interface definition, design rationale documentation |");
         w.println("| **Reviewer Agent** | Architecture Quality Reviewer | Quality attribute verification, constraint compliance checking, risk identification, improvement suggestions |");
         w.println();
-        w.println("## Collaborative Verification Workflow");
-        w.println();
-        w.println("```mermaid");
-        w.println("sequenceDiagram");
-        w.println("    participant O as Orchestrator");
-        w.println("    participant D as Designer");
-        w.println("    participant R as Reviewer");
-        w.println();
-        w.println("    loop Each ADD Step");
-        w.println("        O->>D: Assign design task with specific drivers");
-        w.println("        D->>D: Analyze drivers, create/revise design");
-        w.println("        D->>R: Submit design for review");
-        w.println("        R->>R: Verify against QA scenarios & constraints");
-        w.println("        alt Design passes review");
-        w.println("            R->>O: Approve with comments");
-        w.println("            O->>O: Record decision, advance to next step");
-        w.println("        else Design needs revision");
-        w.println("            R->>D: Return with improvement suggestions");
-        w.println("            D->>D: Revise design addressing feedback");
-        w.println("            D->>R: Resubmit revised design");
-        w.println("        end");
-        w.println("    end");
-        w.println("```");
-        w.println();
         w.println("## Agent Interaction Count");
         w.println();
-        w.println("| Iteration | ADD Steps | Orchestrator→Designer | Designer→Reviewer | Reviewer→Orchestrator | Total Turns |");
-        w.println("|-----------|-----------|----------------------|-------------------|----------------------|-------------|");
-        w.println("| 1 (Overall Structure) | 7 | 7 | 7 | 7 | ~21 |");
-        w.println("| 2 (Primary Functionality) | 6 | 6 | 6 | 6 | ~18 |");
-        w.println("| 3 (Reliability & Availability) | 5 | 5 | 5 | 5 | ~15 |");
-        w.println("| 4 (Development & Operations) | 5 | 5 | 5 | 5 | ~15 |");
-        w.println("| **Total** | | | | | **~69** |");
+        w.println("| Iteration | Goal | ADD Steps | Conversation Entries |");
+        w.println("|-----------|------|-----------|---------------------|");
+        w.print(iterDetail.toString());
+        w.println("| **Total** | | **" + results.stream().mapToInt(r -> r.getSteps().size()).sum()
+                + "** | **" + totalConversationEntries + "** |");
         w.println();
         w.println("---");
     }
 
+    // ===== Individual Reflection =====
     private void writeIndividualReflection(PrintWriter w) {
         w.println();
         w.println("# Individual Reflection");
@@ -875,24 +272,46 @@ public class ReportGenerationService {
         w.println("drivers over Medium-importance drivers. The resulting design uses the transactional outbox");
         w.println("pattern (async publication after atomic write) to satisfy both QA-1 and QA-2 simultaneously.");
         w.println();
-        w.println("### Problem 5: Spring AI Alibaba Multi-Agent Integration");
+        w.println("### Problem 5: Spring AI Multi-Agent Integration");
         w.println();
-        w.println("Spring AI Alibaba is a relatively new framework with evolving multi-agent support.");
-        w.println("Documentation and examples for multi-agent orchestration patterns were limited.");
+        w.println("Spring AI's OpenAI starter is used with a DeepSeek-compatible API endpoint. Multi-agent");
+        w.println("orchestration required programmatic coordination of multiple ChatClient calls with");
+        w.println("distinct system prompts per agent role.");
         w.println();
-        w.println("**Solution**: We studied the Spring AI Alibaba GitHub examples and implemented a");
-        w.println("programmatic multi-agent orchestration pattern using individual ChatClient instances");
-        w.println("with distinct system prompts for each agent role. Conversation context is managed");
-        w.println("explicitly through the ConversationLogService, passed between agents as structured history.");
+        w.println("**Solution**: We implemented a programmatic multi-agent orchestration pattern using");
+        w.println("individual ChatClient instances with distinct system prompts for each agent role.");
+        w.println("Conversation context is managed explicitly through the ConversationLogService, passed");
+        w.println("between agents as structured history.");
         w.println();
         w.println("## 2) Personal Contributions to Group Work");
         w.println();
         w.println("| Name | Chinese | Contributions |");
         w.println("|------|---------|---------------|");
-        w.println("| [Member 1] | [姓名1] | Multi-agent system architecture design and implementation; Orchestrator and Reviewer agent prompt engineering; Spring AI Alibaba integration |");
+        w.println("| [Member 1] | [姓名1] | Multi-agent system architecture design and implementation; Orchestrator and Reviewer agent prompt engineering; Spring AI integration |");
         w.println("| [Member 2] | [姓名2] | Designer agent prompt engineering; Mermaid diagram generation and verification; ADD 3.0 process compliance verification |");
-        w.println("| [Member 3] | [姓名3] | Report writing and formatting; conversation log collection and analysis; interaction cost analysis; testing and validation |");
+        w.println("| [Member 3] | [姓名3] | Report generation and formatting; conversation log collection and analysis; interaction cost analysis; testing and validation |");
         w.println();
+    }
+
+    // ===== Helper methods =====
+
+    /**
+     * Find IterationResult by iteration number.
+     */
+    private IterationResult findResult(List<IterationResult> results, int iterationNumber) {
+        return results.stream()
+                .filter(r -> r.getIterationNumber() == iterationNumber)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Truncate a string to maxLen characters, appending "..." if truncated.
+     */
+    private String truncateGoal(String goal, int maxLen) {
+        if (goal == null) return "";
+        if (goal.length() <= maxLen) return goal;
+        return goal.substring(0, maxLen - 3) + "...";
     }
 
     private void ensureOutputDir() {
